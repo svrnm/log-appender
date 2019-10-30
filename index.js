@@ -30,7 +30,7 @@ app.put('/stream/:name', (req, res) => {
     res.redirect(`/stream/${name}`)
     return
   }
-  var stream = fs.createWriteStream(`uploads/{name}`, {flags: 'a'});
+  var stream = fs.createWriteStream(path.join(dest, name), {flags: 'a'});
   // res.write(`${name} uploaded`)
   req.on('data', chunck => {
     stream.write(chunck)
