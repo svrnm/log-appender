@@ -30,6 +30,7 @@ app.put('/stream/:name', (req, res) => {
     res.redirect(`/stream/${name}`)
     return
   }
+  console.log('Creating write stream: ' + path.join(dest, name))
   var stream = fs.createWriteStream(path.join(dest, name), {flags: 'a'});
   // res.write(`${name} uploaded`)
   req.on('data', chunck => {
@@ -39,6 +40,7 @@ app.put('/stream/:name', (req, res) => {
     res.end(`${name} uploaded`)
   })
   res.on('finish', () => {
+    console.log('Closing write stream: ' + path.join(dest, name))
     stream.close()
   })
 })
