@@ -1,3 +1,8 @@
+let appdynamics;
+if(process.env.APPDYNAMICS_CONTROLLER_HOST_NAME) {
+  appdynamics = require("appdynamics");
+  appdynamics.profile();
+}
 const express = require('express');
 const multer  = require('multer')
 const fs = require('fs');

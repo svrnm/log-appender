@@ -9,6 +9,7 @@
   "author": "Severin Neumann <severin.neumann@appdynamics.com>",
   "license": "Apache-2.0",
   "dependencies": {
+    "appdynamics": "^4.5.22",
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
     "morgan": "^1.9.1",
