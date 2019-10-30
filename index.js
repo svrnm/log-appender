@@ -3,6 +3,7 @@ if(process.env.APPDYNAMICS_CONTROLLER_HOST_NAME) {
   appdynamics = require("appdynamics");
   appdynamics.profile();
 }
+const bcrypt = require('bcrypt');
 const express = require('express');
 const multer  = require('multer')
 const fs = require('fs');
@@ -10,15 +11,48 @@ const fsp = fs.promises;
 const path = require('path');
 const sanitize = require("sanitize-filename");
 const morgan = require('morgan')
+const basicAuth = require('express-basic-auth')
 
 const port = process.env.PORT ? process.env.PORT : 3131
 const dest = process.env.UPLOAD_FOLDER ? process.env.UPLOAD_FOLDER : '/tmp'
+const adminName = process.env.UPLOAD_USERNAME ? process.env.UPLOAD_USERNAME : 'admin'
+const adminPassword = process.env.UPLOAD_PASSWORD ? process.env.UPLOAD_PASSWORD : false
 
 const app = express();
 const upload = multer({ dest })
 
 app.use(morgan('combined'))
 
+if(adminPassword !== false) {
+  console.log('Authentication will be required!')
+  const users = {}
+  users[adminName] = adminPassword
+
+  if(process.env.UPLOAD_PASSWORD_0 || process.env.UPLOAD_PASSWORD_1) {
+    const start = process.env.UPLOAD_PASSWORD_0 ? 0 : 1
+    for(let i = start; process.env[`UPLOAD_PASSWORD_${i}`]; i++) {
+      const username = process.env[`UPLOAD_USERNAME_${i}`] ? process.env[`UPLOAD_USERNAME_${i}`] : `user${i}`
+      const password = process.env[`UPLOAD_PASSWORD_${i}`]
+      users[username] = password
+      console.log(`User ${username} added.`)
+    }
+  }
+
+  const authorizer = async (username, password, cb) => {
+    for(var i in users) {
+      if(basicAuth.safeCompare(username, i) & users[i].startsWith('$2b$') ? await bcrypt.compare(password, users[i]) : basicAuth.safeCompare(password, users[i])) {
+        return cb(null, true)
+      }
+    }
+
+    return cb(null, false)
+  }
+
+  app.use(basicAuth({
+    authorizer,
+    authorizeAsync: true
+  }))
+}
 
 app.get('/', function (req, res) {
   res.send('Hello World!');

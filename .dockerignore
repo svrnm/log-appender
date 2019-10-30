@@ -5,3 +5,4 @@ uploads
 npm-debug.log
 package-lock.json
 build.sh
+hash.js

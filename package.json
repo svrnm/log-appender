@@ -10,8 +10,10 @@
   "license": "Apache-2.0",
   "dependencies": {
     "appdynamics": "^4.5.22",
+    "bcrypt": "^3.0.6",
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
+    "express-basic-auth": "^1.2.0",
     "morgan": "^1.9.1",
     "multer": "^1.4.2",
     "sanitize-filename": "^1.6.3"
