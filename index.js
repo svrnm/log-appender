@@ -1,7 +1,10 @@
 let appdynamics;
-if(process.env.APPDYNAMICS_CONTROLLER_HOST_NAME) {
+if(process.env.APPDYNAMICS_CONTROLLER_HOST_NAME && process.env.APPDYNAMICS_CONTROLLER_PORT) {
+  console.log('Running with appdynamics, connecting to', process.env.APPDYNAMICS_CONTROLLER_HOST_NAME, ':', process.env.APPDYNAMICS_CONTROLLER_PORT)
   appdynamics = require("appdynamics");
-  appdynamics.profile();
+  appdynamics.profile({
+
+  });
 }
 const bcrypt = require('bcrypt');
 const express = require('express');
