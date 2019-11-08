@@ -63,9 +63,33 @@ if (adminPassword !== false) {
   }))
 }
 
+app.use((error, req, res, next) => {
+  res.json({ message: error.message })
+})
+
 app.get('/', function (req, res) {
   res.send('Hello World!')
 })
+
+async function deleteFile(req, res) {
+  const name = sanitize(req.params.name)
+  const fileName = path.join(dest, name)
+  if (name !== req.params.name || !fileName.startsWith(dest)) {
+    res.send(400, `${name} is not allowed`)
+    return
+  }
+  console.log('Deleting: ' + fileName)
+  collect(req, 'filename', name)
+  try {
+    await fsp.unlink(fileName)
+    res.json([`${name} deleted`])
+  } catch {
+    res.json([`${name} not deleted`])
+  }
+}
+
+app.all('/delete/:name', deleteFile)
+app.delete('/:name', deleteFile)
 
 app.put('/stream/:name', (req, res) => {
   const name = sanitize(req.params.name)
