@@ -59,7 +59,9 @@ if (adminPassword !== false) {
 
   app.use(basicAuth({
     authorizer,
-    authorizeAsync: true
+    authorizeAsync: true,
+    challenge: true,
+    realm: 'Please Authenticate'
   }))
 }
 
@@ -67,8 +69,28 @@ app.use((error, req, res, next) => {
   res.json({ message: error.message })
 })
 
-app.get('/', function (req, res) {
-  res.send('Hello World!')
+app.get('/', async (req, res) => {
+  const dirContent = (await (await fsp.readdir(dest)).reduce(async (r, name) => {
+    const result = await r
+    const stat = await fsp.stat(path.join(dest, name))
+    if (name.startsWith('.') || !stat.isFile() || stat.uid !== process.getuid()) {
+      return result
+    }
+    result.push({ name, stat })
+    return result
+  }, []))
+
+  const list = dirContent.reduce((result, file) => {
+    return result + `<li>${file.name} (size: ${file.stat.size}) [<a href="/delete/${file.name}">delete</a>]</li>`
+  }, '')
+
+  const form = '<form method="post" action="/upload" enctype="multipart/form-data"><input name="log" type="file"><button>submit</button></form>'
+
+  const serverName = req.header('serverName') ? req.header('serverName') : `http://localhost:${port}`
+
+  const howto = `<p>Use <code>curl</code> on the command line to upload log files: <pre>curl -F @LOCALFILE1 -F @LOCALFILE2 -u USERNAME:PASSWORD ${serverName}/upload/</pre>Or to stream files:<pre>curl -T LOCALFILE -u USERNAME:PASSWORD -v ${serverName}/stream/REMOTEFILE</pre></p>`
+
+  res.send(`<!doctype html><html lang=en><title>Files</title><body><ul>${list}</ul>${form}${howto}`)
 })
 
 async function deleteFile(req, res) {
@@ -114,6 +136,7 @@ app.put('/stream/:name', (req, res) => {
 })
 
 app.post('/upload', upload.any(), async (req, res) => {
+  console.log(req.files)
   const result = await Promise.all(req.files.map(async (file) => {
     const data = await fsp.readFile(file.path)
     collect(req, 'filename', file.originalname)
